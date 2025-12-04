@@ -91,4 +91,69 @@ async def create_item(product: Product):
     return product
 
 
+# Description from docstring
+'''
+As description tend to be long and cover multiple lines, we can declare the path operation description
+in the function `docstring` and FastAPI will read it from there.
+
+We can write Markdown in the docstring, it will be interpreted and displayed correctly (taking into account docstring indentation).
+'''
+
+@app.post('/prod/', response_model=Product, summary="Summary of a product")
+async def init_product(product: Product):
+    """
+    Create a product with all the information:
+
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesn't have `tax`, we can omit this
+    - **tags**: a set of unique tag strings for this product
+    """
+    return product
+    
+
+# Response description
+# We can specify the response description with the parameter `response_description`:
+@app.post('/response-description/', response_model=Product, summary="Create an item", response_description="The created item")
+async def response_description(product: Product):
+    """
+    Create an item with all the information:
+
+    - **name**: each item must have a name
+    - **description**: a long description
+    - **price**: required
+    - **tax**: if the item doesn't have tax, you can omit this
+    - **tags**: a set of unique tag strings for this item
+    """
+    return product
+
+
+# Deprecate a path operation
+# If we need to mark a path operation as "deprecated", but without removing it, pass the parameter `derecated`:
+
+@app.get('/deprecated-path-operation/accessories/', tags=["accessories"])
+async def view_items():
+    return [
+        {
+            "name": "Foo",
+            "price": 48,
+        }
+    ]
+
+@app.get('/deprecated-path-operation/categories/', tags=["categories"])
+async def read_categories():
+    return [
+        {
+            "category1": "technology"
+        }
+    ]
+
+@app.get('/deprecated-path-operation/categories/elements/', tags=["elements"], deprecated=True)
+async def get_deprecated_elements():
+    return [
+        {
+            "item_id": "423m5294nsd724nf"
+        }
+    ]
 
