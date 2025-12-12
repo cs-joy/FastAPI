@@ -61,5 +61,27 @@ Let's focus on the parameters declared:
 
 # # Using the same dependency multiple times
 '''
-If one of our dependencies is declared multiple times for the same path operation, for example
+If one of our dependencies is declared multiple times for the same path operation, for example,
+multiple dependencies have a common sub-dependency, FastAPI will know how to call that sub-dependency only once per request.
+
+And it will save the returned value in a "cache" and paste it to all the "dependants" that need it in that specific request, instead of calling the dependency multiple times for the same request
+
+In an advnced scenario where we know we need the dependency to be called at every step (possibly multiple times) in the same request instead of using the "cached" value, we can set the parameter `use_cache=False` when using `Depends`:
+
+```
+async def needy_dependency(fresh_value: Annotated[str, Depends(get_value, use_cache=False)]):
+    return {
+        "fresh_value": fresh_valueß
+    }
+```
 '''
+
+# # Recap::
+# Apart from all the fancy words used here, the "Dependency Injection" system is quite simple 
+# Just functions that look the same as the path operation functions.
+# But still, it is very powerful, and allows us to declare arbitrarily deeply nested dependency "graphs" (trees).
+
+# # # Tip"
+# All this might not seem as useful with these simple examples
+# But we will see how useful it is in the chapters about "security"
+# And we will also see the amounts of code it will save us.
