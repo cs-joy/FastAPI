@@ -190,3 +190,94 @@ async def read_own_items(current_user: Annotated[User, Depends(get_current_activ
             "owner": current_user.username
         }
     ]
+
+# # # Technical details about the JWT "subject" `sub`
+'''
+The JWT specification says that there's a key `sub`, with the subject of the token.
+It's optional to use it, but that's where we would put the user's identification, so we are using it here.
+JWT might be used for other things apart from identifying a user and allowing them to perform operations directly on our API.
+For example, we could identify a "car" or a "blog post".
+Then we could add permissions about that entity, like "drive" (for the car) and "edit" (for the blog).
+And then, we could give that JWT token to a user (or bot) and they could use it to perform those actions (drive the car, or edit the blog post) wihtout even needing to have an account, just with the JWT token our API generated for that.
+Using these ideas, JWT can be used for way more sophiscated scenarios.
+In those case, several of those entities could have the same ID, let's say `foo` (a user `foo`, car `foo`, and a blog post `foo`).
+So, to avoid ID collisions, when creating the JWT token for the user, 
+we could prefix the value of the `sub` key, e.g. with `username`: So, in this example, the value of `sub` could have been: `username:johndoe`
+The important thing to keep in mind is that 
+- the `sub` key should have a unique identifier across the entire application and 
+- it should be a string.
+'''
+
+# # Advance usage with `scopes`
+# OAuth2 has  the notion of "scopes"
+# We can use them to add a specific set of permissions to a JWT token.
+# Then we cna give this token to a user directly or a third party, to interact with our API with a set of restrictions.
+# We can learn how to use them and how they are integrated into FastAPI later in the Advanced User Guide.
+
+
+'''
+OAuth2 with scopes is the mechanism used by many big authentication providers, like
+- Facebook
+- Google
+- GitHub
+- Microsoft
+- X
+etc to authorize third party applications to interact with their APIs on behalf of theirs users.
+'''
+
+# # Use RS256 ALgorithm to generate JWT token:
+import os
+from pathlib import Path
+
+PUBLIC_KEY = Path("public.pem").read_text()
+PRIVATE_KEY = Path("private.pem").read_text()
+
+JWT_ALGORITHM = "RS256"
+ACCESS_TOKEN_EXPIRE_MINUTES_JWT = 30
+
+def create_access_token_v2(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, PRIVATE_KEY, algorithm=ALGORITHM)
+
+    return encoded_jwt
+
+from jwt import PyJWTError
+
+def verify_access_token(token: str = Security(oauth2_scheme)):
+    try:
+        # Verify with the PUBLIC key using RS256
+        payload = jwt.decode(token, PUBLIC_KEY, algorithms=[ALGORITHM])
+        # Validate essential claims like audience or issuer if necessary
+        # Example: if payload.get("aud") != "your-app-id": raise HTTPException(...)
+
+        # Return the user data (e.g., username, user_id)
+        return payload
+    except PyJWTError as e:
+        # Handle expired tokens, invalid signatures, etc.
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid authentication credentials: {e}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+
+@app.post("/tesset/token")
+def login_for_access_token(user_credentials: dict): # Use a Pydantic model in a real app
+    # Validate user credentials against your database
+    if user_credentials["username"] == "testuser" and user_credentials["password"] == "testpassword":
+        access_token = create_access_token(
+            data={"sub": user_credentials["username"]},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        return {"access_token": access_token, "token_type": "bearer"}
+    raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+@app.get("/protected-route")
+def read_protected_data(current_user: dict = Depends(verify_access_token)):
+    # This route is only accessible with a valid RS256 JWT
+    return {"message": f"Hello, {current_user.get('sub')}. You accessed protected data!"}
