@@ -8,7 +8,7 @@ import uuid
 from jose import JWTError, jwt
 
 def load_private_key():
-    with open(settings.jwt_private_key_path, "rb") as key_file:
+    with open(settings.JWT_PRIVATE_KEY_PATH, "rb") as key_file:
         private_key = load_pem_private_key(
             key_file.read(),
             password=None,
@@ -17,7 +17,7 @@ def load_private_key():
     return private_key
 
 def load_public_key():
-    with open(settings.jwt_public_key_path, "rb") as key_file:
+    with open(settings.JWT_PUBLIC_KEY_PATH, "rb") as key_file:
         public_key = load_pem_public_key(
             key_file.read(),
             backend=default_backend()
@@ -30,7 +30,7 @@ def create_access_token(data: Dict[str, Any], expires_delta: timedelta | None = 
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     
     to_encode.update({
         "exp": expire,
@@ -43,12 +43,12 @@ def create_access_token(data: Dict[str, Any], expires_delta: timedelta | None = 
     encoded_jwt = jwt.encode(
         to_encode,
         private_key, # experiment >>
-        algorithm=settings.jwt_algorithm
+        algorithm=settings.JWT_ALGORITHM
     )
     return encoded_jwt
 
 def create_refresh_token(user_id: str) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days)
+    expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     data = {
         "sub": user_id,
@@ -59,14 +59,14 @@ def create_refresh_token(user_id: str) -> str:
     }
 
     privaye_key = load_private_key()
-    return jwt.encode(data, privaye_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(data, privaye_key, algorithm=settings.JWT_ALGORITHM)
 
 def verify_token(token: str) -> Dict[str, Any]:
     try:
         public_key = load_public_key()
         payload = jwt.decode(
             token,
-            public_key,algorithms=settings.jwt_algorithm
+            public_key,algorithms=settings.JWT_ALGORITHM
         )
         return payload
     except JWTError:

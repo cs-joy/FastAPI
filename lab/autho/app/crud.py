@@ -57,8 +57,8 @@ def create_refresh_token_record(db: Session,
                                 user_id: uuid.UUID, 
                                 token: str, 
                                 expires_at, 
-                                user_agent: str = None, 
-                                ip_addres: str = None) -> RefreshToken:
+                                user_agent: str | None = None, 
+                                ip_addres: str | None = None) -> RefreshToken:
     from app.utils.security import hash_token
     db_token = RefreshToken(
         user_id = user_id,

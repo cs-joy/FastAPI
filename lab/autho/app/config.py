@@ -1,40 +1,36 @@
-import os
 from pydantic_settings import BaseSettings
-from pathlib import Path
 from typing import List
+import os
 
 class Settings(BaseSettings):
-    # app configuration
-    app_name: str = "autho"
-    environment: str = "development"
-    db_url: str
-
-    # jwt configuraition
-    secret_key: str
-    jwt_algorithm: str = "RS256"
-    jwt_private_key_path: str
-    jwt_public_key_path: str
-    access_token_expire_minutes: int = 30
-    refresh_token_expire_days: int = 7
-
-    # google configuration
-    google_client_id: str | None = None
-    google_client_secret: str | None = None
-    google_redirect_uri: str | None = None
-
-    # apple configuration
-    apple_client_id: str | None = None
-    apple_team_id: str | None = None
-    apple_key_id: str | None = None
-    apple_private_key_path: str | None = None
-    apple_redirect_uri: str | None = None
-
-    # security configuration
-    cors_origins: List[str] = ["http://localhost:3000", "http://localhost:8000"]
-
+    # Database
+    DATABASE_URL: str
+    
+    # JWT
+    JWT_PRIVATE_KEY_PATH: str = "./private_key.pem"
+    JWT_PUBLIC_KEY_PATH: str = "./public_key.pem"
+    JWT_ALGORITHM: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_DAYS: int
+    
+    # Google OAuth2
+    GOOGLE_CLIENT_ID: str
+    GOOGLE_CLIENT_SECRET: str
+    GOOGLE_REDIRECT_URI: str
+    
+    # Apple OAuth2
+    APPLE_CLIENT_ID: str
+    APPLE_TEAM_ID: str
+    APPLE_KEY_ID: str
+    APPLE_PRIVATE_KEY_PATH: str = "./apple_private_key.p8"
+    APPLE_REDIRECT_URI: str
+    
+    # Security
+    SECRET_KEY: str
+    ENVIRONMENT: str = "development"
+    CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    
     class Config:
         env_file = ".env"
 
 settings = Settings()
-
-
