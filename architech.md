@@ -26,3 +26,4 @@ Deployment and Scaling Strategies
 https://www.youtube.com/watch?v=Af6Zr0tNNdE
 https://tech.tamara.co/monolith-architecture-5f00270f384e
 https://github.com/zhanymkanov/fastapi-best-practices?tab=readme-ov-file#project-structure
+https://www.datacamp.com/tutorial/farm-stack-guide
